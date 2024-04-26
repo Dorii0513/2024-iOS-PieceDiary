@@ -14,6 +14,8 @@ struct MainView: View {
     @State var currentIndex: Int?
     @State private var isShowingAlert = false
     
+    @Binding var selectedUIImage: [UIImage?]
+    
     var body: some View {
         ZStack {
             NavigationStack{
@@ -48,6 +50,17 @@ struct MainView: View {
                             .foregroundStyle(Color(hexColor: "474641"))
                             .font(.pretendardMediuim18)
                         
+                        ForEach(pieceList[index].imagesString.indices, id: \.self) { imgIndex in
+                            if let decodedImage = decodeBase64Image(pieceList[index].imagesString[imgIndex]) {
+                                            Image(uiImage: decodedImage)
+                                                .resizable()
+                                                .clipShape(RoundedRectangle(cornerRadius: 15))
+                                                .aspectRatio(contentMode: .fit)
+                                                .frame(width: 200, height: 200, alignment: .leading)
+                                        }
+                                    }
+                        //Image(pieceList[index].imagesString)
+                        
                     }.listRowBackground(Color(hexColor: "474641", opacity: 0.1))
                 }
                 //❗️backgroundColor 변경 : NavigationStack이 ZStack 제일 아래에 깔려있는 뷰
@@ -56,7 +69,7 @@ struct MainView: View {
                 .scrollContentBackground(.hidden)
                 
                 //MARK: - NavigationTitle
-                .navigationTitle("4월11일 목요일")
+                .navigationTitle("4월19일 금요일")
                 .navigationBarTitleTextColor(Color(hexColor: "474641"))
                 .navigationBarTitleDisplayMode(.inline)
                 .frame(alignment: .trailing)
@@ -123,6 +136,9 @@ struct MainView: View {
                         }
                 })
             }
+        }.onAppear(){
+            loadPieceList()
+            print(pieceList)
         }
         
     }
@@ -138,9 +154,26 @@ struct MainView: View {
             try? encodedData.write(to: fileURL)
         }
     }
+    //MARK: - Userdefaults save
+    func loadPieceList() {
+        let fileURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("piece.json")
+        if let data = try? Data(contentsOf: fileURL) {
+            if let decoded = try? JSONDecoder().decode([Piece].self, from: data) {
+                self.pieceList = decoded
+            }
+        }
+    }
+    
+    func decodeBase64Image(_ encodedImage: String) -> UIImage? {
+            guard let imageData = Data(base64Encoded: encodedImage),
+                  let image = UIImage(data: imageData) else {
+                return nil
+            }
+            return image
+        }
     
 }
 
 #Preview {
-    MainView()
+    MainView( selectedUIImage: .constant([]))
 }

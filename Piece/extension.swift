@@ -17,6 +17,10 @@ extension Color {
 
         self.init(.sRGB, red: red, green: green, blue: blue, opacity: opacity)
     }
+    
+    static let kuroBrown = Color(hexColor: "53514B")
+    static let kuroPink = Color(hexColor: "F0AFD4")
+    static let brown = Color(hexColor: "897853")  // #을 제거하고 사용해도 됩니다.
 }
 
 extension View {

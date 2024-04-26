@@ -19,7 +19,12 @@ struct BottomView: View {
     
     //binding
     @Binding var pieceList: [Piece]
+    @State var imageCount: Int = 0
+    // 선택된 이미지들 필요함
+    @State var selectedUIImage: [UIImage?] = []
+    //[UIImage?] -> [String]
     
+    // Main -> Bottom -> Image
     var body: some View {
         ScrollView {
             VStack(alignment: .leading){
@@ -57,7 +62,7 @@ struct BottomView: View {
                 Spacer().frame(height: 0)
                 
                 //MARK: - CameraButton
-                ImageView()
+                ImageView(selectedUIImage: $selectedUIImage, imageCount: $imageCount)
                 
                 Spacer().frame(height: 17)
                 
@@ -83,27 +88,42 @@ struct BottomView: View {
                             Button(action: {
                                 //❗️keyboard dismiss
                                 keyboardFocused = false
-                                pieceList.append(Piece(time: getCurrentTime(), content: text))//배열에 추가
+                                #warning("저장된 이미지들 인코딩해서 넣어야 함")
+                                pieceList.append(Piece(time: getCurrentTime(),
+                                                       content: text, imagesString: selectedUIImage.base64EncodedStrings()))//배열에 추가
                                 savePieceList()
                                 text.removeAll()
+                                imageCount = 0
+                                selectedUIImage = []
                             }, label: {
                                 //MARK: - Button 활성화
                                 ZStack{
-                                    if text.isEmpty == true{
+                                    if text.isEmpty && imageCount == 0 {
                                         Circle()
                                             .frame(width:49)
-                                            .foregroundColor(Color(hexColor: "53514B"))
+                                            .foregroundColor(.kuroBrown)
                                     } else{
                                         Circle()
                                             .frame(width:49)
-                                            .foregroundColor(Color(hexColor: "F0AFD4"))
+                                            .foregroundColor(.kuroPink)
                                     }
                                     Image("send")
                                         .resizable()
                                         .frame(width: 18, height: 18)
                                 }
-                            }).disabled(text.isEmpty)
+                            }).disabled(text.isEmpty && imageCount == 0)
+                                
                         }
+                        .onChange(of: imageCount) {
+                            print(imageCount)
+                        }
+                        .onAppear(perform: {
+                            print(imageCount)
+                        })
+                    // text empty  image empty -> bi
+                    // text !empty  image empty -> ha
+                    // text empty  image !empty -> ha
+                    // text !empty  image !empty -> ha
                         .frame(alignment: .trailing)
                     }
             }
@@ -147,5 +167,17 @@ func getCurrentTime() -> String {
 }
 
 #Preview {
-    BottomView( pieceList: .constant([]))
+    BottomView(pieceList: .constant([]))
+}
+
+extension Array where Element == UIImage? {
+    func base64EncodedStrings() -> [String] {
+        return self.compactMap { image in
+            guard let image = image,
+                  let imageData = image.jpegData(compressionQuality: 1.0)?.base64EncodedString() else {
+                return nil
+            }
+            return imageData
+        }
+    }
 }

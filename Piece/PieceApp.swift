@@ -13,7 +13,7 @@ struct PieceApp: App {
 
     var body: some Scene {
         WindowGroup {
-            MainView()
+            MainView( selectedUIImage: .constant([]))
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }
     }
